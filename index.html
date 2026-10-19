@@ -38,7 +38,7 @@
       box-shadow: 0 10px 30px rgba(0, 0, 0, 0.15);
       border: 1px solid rgba(255, 255, 255, 0.4);
       max-width: 90vw;
-      width: 400px;
+      width: 420px;
       position: relative;
     }
 
@@ -73,7 +73,7 @@
     .cookie-wrapper {
       position: relative;
       cursor: pointer;
-      margin: 15px 0;
+      margin: 10px 0;
       transition: transform 0.1s ease;
     }
 
@@ -82,8 +82,8 @@
     }
 
     .cookie-svg {
-      width: 200px;
-      height: 200px;
+      width: 180px;
+      height: 180px;
       filter: drop-shadow(0 12px 20px rgba(0, 0, 0, 0.2));
       transition: transform 0.15s cubic-bezier(0.175, 0.885, 0.32, 1.275);
     }
@@ -113,10 +113,97 @@
       }
     }
 
+    .achievements-container {
+      width: 100%;
+      margin-top: 5px;
+      padding-top: 15px;
+      border-top: 1px solid rgba(255, 255, 255, 0.4);
+    }
+
+    .achievements-title {
+      font-size: 0.95rem;
+      font-weight: 700;
+      color: #8c5a1e;
+      margin-bottom: 10px;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+    }
+
+    .achievements-grid {
+      display: flex;
+      justify-content: space-between;
+      gap: 10px;
+    }
+
+    .trophy-card {
+      background: rgba(255, 255, 255, 0.4);
+      border-radius: 12px;
+      padding: 10px 6px;
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 4px;
+      opacity: 0.45;
+      filter: grayscale(100%);
+      transition: all 0.3s ease;
+      border: 2px solid transparent;
+      position: relative;
+    }
+
+    .trophy-card.unlocked {
+      opacity: 1;
+      filter: grayscale(0%);
+      background: rgba(255, 255, 255, 0.9);
+      border-color: #f59e0b;
+      box-shadow: 0 4px 12px rgba(245, 158, 11, 0.3);
+      transform: translateY(-2px);
+    }
+
+    .trophy-icon {
+      font-size: 1.8rem;
+    }
+
+    .trophy-name {
+      font-size: 0.75rem;
+      font-weight: 700;
+      color: #4a2e00;
+    }
+
+    .trophy-desc {
+      font-size: 0.65rem;
+      color: #8c5a1e;
+      font-weight: 600;
+    }
+
+    .toast {
+      position: fixed;
+      top: 20px;
+      background: #d97706;
+      color: #fff;
+      padding: 12px 24px;
+      border-radius: 30px;
+      font-weight: bold;
+      font-size: 0.95rem;
+      box-shadow: 0 6px 20px rgba(0, 0, 0, 0.2);
+      transform: translateY(-100px);
+      opacity: 0;
+      transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+      z-index: 100;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .toast.show {
+      transform: translateY(0);
+      opacity: 1;
+    }
+
     .controls {
       display: flex;
       gap: 10px;
-      margin-top: 10px;
+      margin-top: 5px;
     }
 
     .btn {
@@ -157,6 +244,11 @@
 </head>
 <body>
 
+  <div id="toast" class="toast">
+    <span class="toast-icon">🏆</span>
+    <span id="toast-msg">Achievement Unlocked!</span>
+  </div>
+
   <div class="container">
     <h1>Cookie Clicker</h1>
 
@@ -191,6 +283,27 @@
         <!-- Chip 7 (Center top) -->
         <path d="M 95,65 Q 105,60 110,70 Q 102,78 92,72 Q 90,68 95,65 Z" fill="#451a03" />
       </svg>
+    </div>
+
+    <div class="achievements-container">
+      <div class="achievements-title">Achievements</div>
+      <div class="achievements-grid">
+        <div class="trophy-card" id="trophy-10" data-threshold="10">
+          <div class="trophy-icon">🥉</div>
+          <div class="trophy-name">Bronze Cookie</div>
+          <div class="trophy-desc">10 Clicks</div>
+        </div>
+        <div class="trophy-card" id="trophy-100" data-threshold="100">
+          <div class="trophy-icon">🥈</div>
+          <div class="trophy-name">Silver Cookie</div>
+          <div class="trophy-desc">100 Clicks</div>
+        </div>
+        <div class="trophy-card" id="trophy-1000" data-threshold="1000">
+          <div class="trophy-icon">🥇</div>
+          <div class="trophy-name">Gold Cookie</div>
+          <div class="trophy-desc">1000 Clicks</div>
+        </div>
+      </div>
     </div>
 
     <div class="controls">

@@ -26,10 +26,48 @@ function eraseCookie(name) {
 
 document.addEventListener('DOMContentLoaded', () => {
   let count = 0;
+  let unlockedAchievements = new Set();
 
   const counterEl = document.getElementById('counter');
   const cookieEl = document.getElementById('cookie');
   const resetBtn = document.getElementById('reset-btn');
+  const toastEl = document.getElementById('toast');
+  const toastMsgEl = document.getElementById('toast-msg');
+
+  const achievements = [
+    { threshold: 10, id: 'trophy-10', name: 'Bronze Cookie (10 Clicks)' },
+    { threshold: 100, id: 'trophy-100', name: 'Silver Cookie (100 Clicks)' },
+    { threshold: 1000, id: 'trophy-1000', name: 'Gold Cookie (1000 Clicks)' }
+  ];
+
+  let toastTimeout = null;
+  function showToast(message) {
+    if (!toastEl) return;
+    toastMsgEl.textContent = message;
+    toastEl.classList.add('show');
+    if (toastTimeout) clearTimeout(toastTimeout);
+    toastTimeout = setTimeout(() => {
+      toastEl.classList.remove('show');
+    }, 3000);
+  }
+
+  function updateAchievementsUI(showNotification = false) {
+    achievements.forEach((ach) => {
+      const card = document.getElementById(ach.id);
+      if (count >= ach.threshold) {
+        if (!unlockedAchievements.has(ach.threshold)) {
+          unlockedAchievements.add(ach.threshold);
+          if (showNotification) {
+            showToast(`Unlocked: ${ach.name}!`);
+          }
+        }
+        if (card) card.classList.add('unlocked');
+      } else {
+        unlockedAchievements.delete(ach.threshold);
+        if (card) card.classList.remove('unlocked');
+      }
+    });
+  }
 
   // Load saved count from document.cookie
   const savedCount = getCookie('click_count');
@@ -37,6 +75,7 @@ document.addEventListener('DOMContentLoaded', () => {
     count = parseInt(savedCount, 10) || 0;
     counterEl.textContent = count;
   }
+  updateAchievementsUI(false);
 
   function createParticle(x, y) {
     const particle = document.createElement('div');
@@ -57,6 +96,8 @@ document.addEventListener('DOMContentLoaded', () => {
     counterEl.textContent = count;
     setCookie('click_count', count, 365);
 
+    updateAchievementsUI(true);
+
     // Create floating +1 effect
     const rect = cookieEl.getBoundingClientRect();
     const x = e.clientX || (rect.left + rect.width / 2);
@@ -68,5 +109,7 @@ document.addEventListener('DOMContentLoaded', () => {
     count = 0;
     counterEl.textContent = count;
     eraseCookie('click_count');
+    unlockedAchievements.clear();
+    updateAchievementsUI(false);
   });
 });
