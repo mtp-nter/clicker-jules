@@ -1,0 +1,248 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Cookie Clicker</title>
+  <style>
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      background: linear-gradient(135deg, #fceabb 0%, #f8b500 100%);
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      text-align: center;
+      user-select: none;
+      overflow: hidden;
+      color: #4a2e00;
+    }
+
+    .container {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 20px;
+      padding: 30px;
+      background: rgba(255, 255, 255, 0.35);
+      backdrop-filter: blur(10px);
+      border-radius: 24px;
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.15);
+      border: 1px solid rgba(255, 255, 255, 0.4);
+      max-width: 90vw;
+      width: 400px;
+      position: relative;
+    }
+
+    h1 {
+      font-size: 2.2rem;
+      font-weight: 800;
+      text-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    }
+
+    .counter-container {
+      background: rgba(255, 255, 255, 0.8);
+      padding: 12px 28px;
+      border-radius: 50px;
+      box-shadow: 0 4px 15px rgba(0, 0, 0, 0.08);
+    }
+
+    .counter-label {
+      font-size: 0.9rem;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      color: #8c5a1e;
+      font-weight: 600;
+    }
+
+    .counter-value {
+      font-size: 3rem;
+      font-weight: 900;
+      color: #d97706;
+      line-height: 1.1;
+    }
+
+    .cookie-wrapper {
+      position: relative;
+      cursor: pointer;
+      margin: 15px 0;
+      transition: transform 0.1s ease;
+    }
+
+    .cookie-wrapper:active {
+      transform: scale(0.92);
+    }
+
+    .cookie-svg {
+      width: 200px;
+      height: 200px;
+      filter: drop-shadow(0 12px 20px rgba(0, 0, 0, 0.2));
+      transition: transform 0.15s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    }
+
+    .cookie-wrapper:hover .cookie-svg {
+      transform: scale(1.05);
+    }
+
+    .click-particle {
+      position: absolute;
+      font-weight: bold;
+      font-size: 1.5rem;
+      color: #b45309;
+      pointer-events: none;
+      animation: floatUp 0.8s ease-out forwards;
+      z-index: 10;
+    }
+
+    @keyframes floatUp {
+      0% {
+        opacity: 1;
+        transform: translate(-50%, 0) scale(1);
+      }
+      100% {
+        opacity: 0;
+        transform: translate(-50%, -60px) scale(1.3);
+      }
+    }
+
+    .controls {
+      display: flex;
+      gap: 10px;
+      margin-top: 10px;
+    }
+
+    .btn {
+      background: #d97706;
+      color: #fff;
+      border: none;
+      padding: 10px 20px;
+      font-size: 0.95rem;
+      font-weight: 700;
+      border-radius: 12px;
+      cursor: pointer;
+      box-shadow: 0 4px 10px rgba(217, 119, 6, 0.3);
+      transition: all 0.2s ease;
+    }
+
+    .btn:hover {
+      background: #b45309;
+      transform: translateY(-2px);
+      box-shadow: 0 6px 14px rgba(180, 83, 9, 0.4);
+    }
+
+    .btn:active {
+      transform: translateY(0);
+    }
+
+    .btn-secondary {
+      background: rgba(255, 255, 255, 0.6);
+      color: #78350f;
+      box-shadow: 0 4px 10px rgba(0, 0, 0, 0.05);
+    }
+
+    .btn-secondary:hover {
+      background: rgba(255, 255, 255, 0.85);
+      color: #451a03;
+      box-shadow: 0 6px 14px rgba(0, 0, 0, 0.08);
+    }
+  </style>
+</head>
+<body>
+
+  <div class="container">
+    <h1>Cookie Clicker</h1>
+
+    <div class="counter-container">
+      <div class="counter-label">Cookies Clicked</div>
+      <div class="counter-value" id="counter">0</div>
+    </div>
+
+    <div class="cookie-wrapper" id="cookie" role="button" aria-label="Clickable Cookie">
+      <svg class="cookie-svg" viewBox="0 0 200 200" xmlns="http://www.w3.org/2000/svg">
+        <!-- Cookie Base -->
+        <circle cx="100" cy="100" r="90" fill="#d97706" />
+        <circle cx="100" cy="100" r="85" fill="#f59e0b" />
+        <!-- Texture/Shading -->
+        <path d="M 30,100 A 70,70 0 0,0 170,100 A 65,65 0 0,1 30,100" fill="#d97706" opacity="0.3" />
+        <circle cx="100" cy="100" r="80" fill="none" stroke="#fcd34d" stroke-width="4" opacity="0.4" stroke-dasharray="10, 15" />
+
+        <!-- Chocolate Chips -->
+        <!-- Chip 1 -->
+        <path d="M 60,60 Q 65,50 75,58 Q 80,68 70,75 Q 58,72 60,60 Z" fill="#451a03" />
+        <circle cx="67" cy="62" r="2" fill="#78350f" />
+        <!-- Chip 2 -->
+        <path d="M 125,50 Q 135,45 142,55 Q 145,68 132,70 Q 120,65 125,50 Z" fill="#451a03" />
+        <!-- Chip 3 -->
+        <path d="M 85,110 Q 98,102 105,115 Q 102,128 88,125 Q 80,118 85,110 Z" fill="#451a03" />
+        <!-- Chip 4 -->
+        <path d="M 140,115 Q 152,110 155,122 Q 150,135 138,130 Q 132,122 140,115 Z" fill="#451a03" />
+        <!-- Chip 5 -->
+        <path d="M 50,125 Q 60,120 65,132 Q 58,142 48,138 Q 42,130 50,125 Z" fill="#451a03" />
+        <!-- Chip 6 -->
+        <path d="M 100,150 Q 112,145 115,158 Q 105,168 95,162 Q 92,154 100,150 Z" fill="#451a03" />
+        <!-- Chip 7 (Center top) -->
+        <path d="M 95,65 Q 105,60 110,70 Q 102,78 92,72 Q 90,68 95,65 Z" fill="#451a03" />
+      </svg>
+    </div>
+
+    <div class="controls">
+      <button class="btn btn-secondary" id="reset-btn">Reset</button>
+    </div>
+  </div>
+
+  <script>
+    let count = 0;
+
+    const counterEl = document.getElementById('counter');
+    const cookieEl = document.getElementById('cookie');
+    const resetBtn = document.getElementById('reset-btn');
+
+    // Load saved count from localStorage if available
+    const savedCount = localStorage.getItem('cookie_click_count');
+    if (savedCount !== null) {
+      count = parseInt(savedCount, 10) || 0;
+      counterEl.textContent = count;
+    }
+
+    function createParticle(x, y) {
+      const particle = document.createElement('div');
+      particle.className = 'click-particle';
+      particle.textContent = '+1';
+      particle.style.left = `${x}px`;
+      particle.style.top = `${y}px`;
+
+      document.body.appendChild(particle);
+
+      particle.addEventListener('animationend', () => {
+        particle.remove();
+      });
+    }
+
+    cookieEl.addEventListener('click', (e) => {
+      count++;
+      counterEl.textContent = count;
+      localStorage.setItem('cookie_click_count', count);
+
+      // Create floating +1 effect
+      const rect = cookieEl.getBoundingClientRect();
+      const x = e.clientX || (rect.left + rect.width / 2);
+      const y = e.clientY || (rect.top + rect.height / 2);
+      createParticle(x, y);
+    });
+
+    resetBtn.addEventListener('click', () => {
+      count = 0;
+      counterEl.textContent = count;
+      localStorage.removeItem('cookie_click_count');
+    });
+  </script>
+</body>
+</html>
