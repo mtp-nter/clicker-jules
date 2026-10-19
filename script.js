@@ -1,4 +1,4 @@
-// Helper functions to get and set browser cookies
+// Helper functions to get, set, and erase browser cookies
 function getCookie(name) {
   const nameEQ = name + "=";
   const ca = document.cookie.split(';');
@@ -24,6 +24,44 @@ function eraseCookie(name) {
   document.cookie = name + '=; Path=/; Expires=Thu, 01 Jan 1970 00:00:01 GMT;';
 }
 
+// Simple checksum to detect manual tampering of cookie value
+function calculateChecksum(val) {
+  const num = parseInt(val, 10) || 0;
+  return ((num * 9301 + 49297) % 233280).toString(16);
+}
+
+// Prevent context menu (right click)
+document.addEventListener('contextmenu', (e) => {
+  e.preventDefault();
+});
+
+// Prevent Developer Tools keyboard shortcuts
+document.addEventListener('keydown', (e) => {
+  const key = e.key ? e.key.toUpperCase() : '';
+
+  // F12 key
+  if (key === 'F12' || e.keyCode === 123) {
+    e.preventDefault();
+    return false;
+  }
+
+  // Ctrl+Shift+I, Ctrl+Shift+J, Ctrl+Shift+C, or Ctrl+U
+  if (e.ctrlKey) {
+    if ((e.shiftKey && (key === 'I' || key === 'J' || key === 'C')) || key === 'U') {
+      e.preventDefault();
+      return false;
+    }
+  }
+
+  // Mac: Cmd+Option+I, Cmd+Option+J, Cmd+Option+C, Cmd+Option+U
+  if (e.metaKey && e.altKey) {
+    if (key === 'I' || key === 'J' || key === 'C' || key === 'U') {
+      e.preventDefault();
+      return false;
+    }
+  }
+});
+
 document.addEventListener('DOMContentLoaded', () => {
   let count = 0;
 
@@ -31,12 +69,29 @@ document.addEventListener('DOMContentLoaded', () => {
   const cookieEl = document.getElementById('cookie');
   const resetBtn = document.getElementById('reset-btn');
 
-  // Load saved count from document.cookie
-  const savedCount = getCookie('click_count');
-  if (savedCount !== null) {
-    count = parseInt(savedCount, 10) || 0;
-    counterEl.textContent = count;
+  function saveCount(val) {
+    setCookie('click_count', val, 365);
+    setCookie('click_sig', calculateChecksum(val), 365);
   }
+
+  // Load saved count from document.cookie with checksum verification
+  const savedCount = getCookie('click_count');
+  const savedSig = getCookie('click_sig');
+
+  if (savedCount !== null) {
+    const parsedCount = parseInt(savedCount, 10) || 0;
+    const expectedSig = calculateChecksum(parsedCount);
+
+    if (savedSig === expectedSig) {
+      count = parsedCount;
+    } else {
+      console.warn("Cookie tampering detected! Score has been reset.");
+      count = 0;
+      saveCount(0);
+    }
+  }
+
+  counterEl.textContent = count;
 
   function createParticle(x, y) {
     const particle = document.createElement('div');
@@ -55,7 +110,7 @@ document.addEventListener('DOMContentLoaded', () => {
   cookieEl.addEventListener('click', (e) => {
     count++;
     counterEl.textContent = count;
-    setCookie('click_count', count, 365);
+    saveCount(count);
 
     // Create floating +1 effect
     const rect = cookieEl.getBoundingClientRect();
@@ -68,5 +123,6 @@ document.addEventListener('DOMContentLoaded', () => {
     count = 0;
     counterEl.textContent = count;
     eraseCookie('click_count');
+    eraseCookie('click_sig');
   });
 });
