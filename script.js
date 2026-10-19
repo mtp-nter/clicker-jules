@@ -24,7 +24,7 @@ function eraseCookie(name) {
   document.cookie = name + '=; Path=/; Expires=Thu, 01 Jan 1970 00:00:01 GMT;';
 }
 
-// Simple checksum to detect manual tampering of cookie value
+// Basic checksum: only a casual deterrent, trivially bypassable client-side
 function calculateChecksum(val) {
   const num = parseInt(val, 10) || 0;
   return ((num * 9301 + 49297) % 233280).toString(16);
@@ -69,29 +69,76 @@ document.addEventListener('DOMContentLoaded', () => {
   const cookieEl = document.getElementById('cookie');
   const resetBtn = document.getElementById('reset-btn');
 
-  function saveCount(val) {
-    setCookie('click_count', val, 365);
-    setCookie('click_sig', calculateChecksum(val), 365);
+  function readLocal(key) {
+    try {
+      return localStorage.getItem(key);
+    } catch (err) {
+      return null;
+    }
   }
 
-  // Load saved count from document.cookie with checksum verification
-  const savedCount = getCookie('click_count');
-  const savedSig = getCookie('click_sig');
+  function writeLocal(key, value) {
+    try {
+      localStorage.setItem(key, value);
+      return true;
+    } catch (err) {
+      return false;
+    }
+  }
+
+  function removeLocal(key) {
+    try {
+      localStorage.removeItem(key);
+    } catch (err) {
+      // noop
+    }
+  }
+
+  function saveCount(val) {
+    const valueStr = String(val);
+    const sig = calculateChecksum(val);
+    if (!writeLocal('click_count', valueStr)) {
+      setCookie('click_count', valueStr, 365);
+    }
+    if (!writeLocal('click_sig', sig)) {
+      setCookie('click_sig', sig, 365);
+    }
+    // Keep old cookies in sync so the data migrates to localStorage on next load
+    if (readLocal('click_count') !== null) {
+      eraseCookie('click_count');
+      eraseCookie('click_sig');
+    }
+  }
+
+  // Load saved count; localStorage works even on file:// URLs where
+  // document.cookie is silently ignored, so it is the primary store
+  const localCount = readLocal('click_count');
+  const localSig = readLocal('click_sig');
+  const cookieCount = getCookie('click_count');
+  const cookieSig = getCookie('click_sig');
+
+  const savedCount = localCount !== null ? localCount : cookieCount;
+  const savedSig = localSig !== null ? localSig : cookieSig;
 
   if (savedCount !== null) {
-    const parsedCount = parseInt(savedCount, 10) || 0;
-    const expectedSig = calculateChecksum(parsedCount);
+    const rawCount = String(savedCount).trim();
+    const rawSig = savedSig === null ? null : String(savedSig).trim();
 
-    if (savedSig === expectedSig) {
-      count = parsedCount;
+    if (/^\d+$/.test(rawCount) && rawSig === calculateChecksum(rawCount)) {
+      count = parseInt(rawCount, 10);
     } else {
-      console.warn("Cookie tampering detected! Score has been reset.");
+      console.warn('Stored score failed validation. Score has been reset.');
       count = 0;
       saveCount(0);
     }
   }
 
   counterEl.textContent = count;
+
+  // One-time migration: move data found in HTTP cookies into localStorage
+  if (localCount === null && cookieCount !== null) {
+    saveCount(count);
+  }
 
   function createParticle(x, y) {
     const particle = document.createElement('div');
@@ -107,21 +154,45 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   }
 
-  cookieEl.addEventListener('click', (e) => {
+  function addCount(x, y) {
     count++;
     counterEl.textContent = count;
     saveCount(count);
-
-    // Create floating +1 effect
-    const rect = cookieEl.getBoundingClientRect();
-    const x = e.clientX || (rect.left + rect.width / 2);
-    const y = e.clientY || (rect.top + rect.height / 2);
     createParticle(x, y);
+  }
+
+  function cookieCenter() {
+    const rect = cookieEl.getBoundingClientRect();
+    return {
+      x: rect.left + rect.width / 2,
+      y: rect.top + rect.height / 2
+    };
+  }
+
+  cookieEl.addEventListener('click', (e) => {
+    // Programmatic and keyboard-triggered clicks report 0,0; use the cookie center then
+    const hasRealCoords = typeof e.clientX === 'number' && (e.clientX > 0 || e.clientY > 0);
+    if (hasRealCoords) {
+      addCount(e.clientX, e.clientY);
+    } else {
+      const center = cookieCenter();
+      addCount(center.x, center.y);
+    }
+  });
+
+  cookieEl.addEventListener('keydown', (e) => {
+    if (e.key === 'Enter' || e.key === ' ' || e.key === 'Spacebar') {
+      e.preventDefault();
+      const center = cookieCenter();
+      addCount(center.x, center.y);
+    }
   });
 
   resetBtn.addEventListener('click', () => {
     count = 0;
     counterEl.textContent = count;
+    removeLocal('click_count');
+    removeLocal('click_sig');
     eraseCookie('click_count');
     eraseCookie('click_sig');
   });
